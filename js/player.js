@@ -6,10 +6,12 @@ game.player = {
   direction: "left",
   isInAir: false,
   startedJump: false,
-  startedDoubleJump: false,
+  jumpCourt: 0,
+  timeout: 0,
   moveInterval: null,
   fallTimeout: function (startingY, time, maxHeight) {
-    setTimeout(
+    clearTimeout(this.timeout);
+    this.timeout = setTimeout(
       function () {
         if (this.isInAir) {
           this.y = startingY - maxHeight + Math.pow(-time / 3 + 11, 2);
@@ -35,6 +37,7 @@ game.player = {
       12
     );
   },
+
   animationFrameNumber: 0,
   collidesWithGround: true,
   animations: {
@@ -53,19 +56,32 @@ game.player = {
     ],
   },
   jump: function (type) {
+    if (this.jumpCount >= 2) return;
+
     if (!this.isInAir) {
-      clearInterval(this.fallInterval);
-      game.sounds.jump.play();
       this.isInAir = true;
-      this.startedJump = true;
-      var startingY = this.y;
-      var time = 1;
-      maxHeight = 121;
-      if (type == "fall") {
-        time = 30;
-        maxHeight = 0;
-      }
-      this.fallTimeout(startingY, time, maxHeight);
+      this.jumpCount = 1;
+    } else {
+      this.jumpCount++;
     }
+
+    clearInterval(this.fallInterval);
+    game.sounds.jump.play();
+
+    let startingY = this.y;
+    console.log("startingY", this.y);
+    let time = 1;
+    let maxHeight = 121;
+    if (type === "fall") {
+      console.log("type = fall");
+      time = 30;
+      maxHeight = 0;
+    }
+    this.fallTimeout(startingY, time, maxHeight);
+  },
+
+  resetJump: function () {
+    this.jumpCount = 0;
+    this.isInAir = false;
   },
 };
